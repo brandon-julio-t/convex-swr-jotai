@@ -41,9 +41,7 @@ export const useQueriesSwr = !FEATURE_FLAG_USE_QUERY_SWR
   : (((queries: RequestForQueries) => {
       const result = useQueries(queries)
 
-      const isLoading = Object.values(result ?? { a: undefined }).some(
-        (v) => v === undefined,
-      )
+      const isLoading = Object.values(result).some((v) => v === undefined)
 
       const key = React.useMemo(() => {
         const newMap: Record<string, unknown> = {}
@@ -133,24 +131,6 @@ export const usePaginatedQuerySwr = !FEATURE_FLAG_USE_QUERY_SWR
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const key = createQueryKey(name, args as any)
 
-      const loadMore: typeof result.loadMore = React.useCallback(
-        (numItems) => {
-          log('[usePaginatedQuerySwr] loadMore', numItems)
-
-          const originalLoadMore = result.loadMore
-
-          // need to remove the cache so
-          // that when new page comes in
-          // it does not use the old page and will show the new page
-          const cache = { ...store.get(cacheAtom) }
-          delete cache[key]
-          store.set(cacheAtom, cache)
-
-          originalLoadMore(numItems)
-        },
-        [key, result.loadMore],
-      )
-
       React.useEffect(() => {
         if (
           result.status !== 'LoadingMore' &&
@@ -167,9 +147,7 @@ export const usePaginatedQuerySwr = !FEATURE_FLAG_USE_QUERY_SWR
 
       const stale = store.get(cacheAtom)[key] as typeof result
       log('[usePaginatedQuerySwr] stale', { key, stale })
-      const finalResult =
-        result.status === 'LoadingFirstPage' ? (stale ?? result) : result
-      return { ...finalResult, loadMore }
+      return result.status === 'LoadingFirstPage' ? (stale ?? result) : result
     }) as typeof usePaginatedQuery)
 
 /**

@@ -10,7 +10,7 @@ Stale-While-Revalidate (SWR-like) behavior for Convex React hooks, backed by a J
 - **Solution**: `src/hooks/use-query-swr.ts` provides drop-in replacements that return the last known value while new data loads:
   - **`useQuerySwr`**: SWR for a single query
   - **`useQueriesSwr`**: SWR for multiple queries
-  - **`usePaginatedQuerySwr`**: SWR for paginated queries (with safe `loadMore` behavior)
+  - **`usePaginatedQuerySwr`**: SWR for paginated queries
 
 Under the hood, results are cached in a global Jotai store keyed by the Convex function reference and its arguments. This cache survives route changes, avoiding flicker.
 
@@ -77,6 +77,7 @@ window.__getUseQuerySwrCache__()
 - The key is computed from the Convex function reference and its arguments using `getFunctionName` and `convexToJson`.
 - While a new fetch is in-flight, the hook returns the cached value instead of `undefined`.
 - For `usePaginatedQuerySwr`, calling `loadMore` intentionally clears the relevant cache entry before fetching the next page to ensure new pages render fresh data.
+- For `usePaginatedQuerySwr`, the first page returns a stale value if available while loading; during `loadMore` it follows Convex defaults (keeps prior items with `status: 'LoadingMore'`) without wrapping `loadMore`.
 
 ### Caveats
 
